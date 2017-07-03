@@ -1,0 +1,10 @@
+[package]
+name = "fuzzy_logic"
+version = "0.1.0"
+authors = ["ab"]
+
+[dependencies]
+
+
+[dev-dependencies]
+quickcheck = "*"
