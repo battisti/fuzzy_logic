@@ -4,23 +4,23 @@ extern crate fuzzy_logic;
 mod boolean_membership {
 
     use fuzzy_logic::degree::Degree;
-    use fuzzy_logic::membership_functions::boolean;
+    use fuzzy_logic::membership_functions::{Boolean, Fuzzy};
 
     #[test]
     fn large_value() {
-        let degree = boolean(&10.2, &0.5);
+        let degree = Boolean::new(0.5).membership(7.1);
         assert_eq!(degree, Degree::one());
     }
 
     #[test]
     fn boundary() {
-        let degree = boolean(&0.75, &0.75);
+        let degree = Boolean::new(0.75).membership(0.75);
         assert_eq!(degree, Degree::one());
     }
 
     #[test]
-    fn small_valer() {
-        let degree = boolean(&(-7.2), &0.5);
+    fn small_value() {
+        let degree = Boolean::new(0.5).membership(-3.0);
         assert_eq!(degree, Degree::zero());
     }
 
