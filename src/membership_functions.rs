@@ -32,10 +32,10 @@ impl<T: PartialOrd> Fuzzy<T> for Boolean<T> {
 pub struct Gradual<T: PartialOrd + Into<f64>>(T, T);
 
 impl<T> Gradual<T> 
-where T: PartialOrd + Into<f64> + Copy
+where T: PartialOrd + Into<f64>
 {
     pub fn new(x0: T, x1: T) -> Gradual<T> {
-        assert!(x0 < x1);
+        assert!(&x0 < &x1);
         Gradual(x0, x1)
     }
 }
@@ -59,65 +59,75 @@ where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy
 }
 
 
+pub struct Triangular<T: PartialOrd + Into<f64>>(T, T, T);
 
-// TODO: handle values as well as references
-pub fn triangular<T>(x: &T, x0: &T, x1: &T, x2: &T) -> Degree
-where T : PartialOrd + Into<f64>,
-      for <'a> T: Div<&'a T, Output = T> + Sub<&'a T, Output = T>,
-      for <'a, 'b> &'a T: Div<&'b T, Output = T> + Sub<&'b T, Output = T>
+impl<T>  Triangular<T>
+where T: PartialOrd + Into<f64> {
+    pub fn new(x0: T, x1: T, x2: T) -> Triangular<T> {
+        assert!(&x0 < &x1 && &x1 < &x2);
+        Triangular(x0, x1, x2)
+    }
+}
+
+impl<T> Fuzzy<T> for Triangular<T>
+where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy
 {
-    assert!(x0 < x1);
-    assert!(x1 < x2);
-
-    match x {
-        _ if x <= x0 => Degree::zero(),
-        _ if x >= x2 => Degree::zero(),
-        _ if x > x1 => {
-            let d = (x1 / &(x1 - x0)) - &(x / &(x1 - x0));
-            match Degree::new(d.into()) {
-                None    => Degree::zero(),
-                Some(d) => d,
+    fn membership(&self, value: T) -> Degree {
+        match value {
+            _ if value <= self.0 => Degree::zero(),
+            _ if value >= self.2 => Degree::zero(),
+            _ if value >  self.1 => {
+                let d = (self.1 / (self.1 - self.0)) - (value / (self.1 - self.0));
+                match Degree::new(d.into()) {
+                    None    => Degree::zero(),
+                    Some(d) => d,
+                }
             }
-        }
-        _ if x < x1 => {
-            let d = (x / &(x1 - x0)) - &(x0 / &(x1 - x0));
-            match Degree::new(d.into()) {
-                None    => Degree::zero(),
-                Some(d) => d,
+            _ if value < self.1 => {
+                let d = (value / (self.1 - self.0)) - (self.0 / (self.1 - self.0));
+                match Degree::new(d.into()) {
+                    None    => Degree::zero(),
+                    Some(d) => d,
+                }
             }
-        }
-        _ => Degree::one(),
+            _ => Degree::one(),
+        }    
     }
 }
 
 
-// TODO: handle values as well as references
-pub fn trapezoid<T>(x: &T, x0: &T, x1: &T, x2: &T, x3: &T) -> Degree
-    where T : PartialOrd + Into<f64>,
-          for <'a> T: Div<&'a T, Output = T> + Sub<&'a T, Output = T>,
-          for <'a, 'b> &'a T: Div<&'b T, Output = T> + Sub<&'b T, Output = T>
-{
-    assert!(x0 < x1);
-    assert!(x1 < x2);
-    assert!(x2 < x3);
+pub struct Trapezoid<T: PartialOrd + Into<f64>>(T, T, T, T);
 
-    match x {
-        _ if x  <= x0         => Degree::zero(),
-        _ if x0 < x && x < x1 => {
-            let d = (x / &(x1 - x0)) - &(x0 - &(x1 - x0));
-            match Degree::new(d.into()) {
-                None    => Degree::zero(),
-                Some(d) => d,
-            }
+impl<T> Trapezoid<T>
+where T: PartialOrd + Into<f64> {
+    pub fn new(x0: T, x1: T, x2: T, x3: T) -> Trapezoid<T> {
+        assert!(&x0 < &x1 && &x1 < &x2 && &x2 < &x3);
+        Trapezoid(x0, x1, x2, x3)
+    }
+}
+
+impl<T> Fuzzy<T> for Trapezoid<T>
+where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy {
+    fn membership(&self, value: T) -> Degree {
+        match value {
+            _ if value <= self.0 => Degree::zero(),
+            _ if value >= self.1 && value <= self.2 => Degree::one(),
+            _ if value >  self.0 && value <  self.1 => {
+                let d = (value / (self.1 - self.0)) - (self.0 - (self.1 - self.0));
+                match Degree::new(d.into()) {
+                    None    => Degree::zero(),
+                    Some(d) => d,
+                }
+            },
+            _ if value > self.2 && value < self.3 => {
+                let d = (self.3 / (self.3 - self.2)) - (value / (self.3 - self.2));
+                match Degree::new(d.into()) {
+                    None    => Degree::zero(),
+                    Some(d) => d,
+                }
+            },
+            _ => Degree::zero(),
         }
-        _ if x2 < x && x < x3 => {
-            let d = (x3 / &(x3 - x2)) - &(x / &(x3 - x2));
-            match Degree::new(d.into()) {
-                None    => Degree::zero(),
-                Some(d) => d,
-            }
-        },
-        _ => Degree::one(),
     }
 }
 
