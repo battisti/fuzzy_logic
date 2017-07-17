@@ -29,6 +29,7 @@ impl<T: PartialOrd> Fuzzy<T> for Boolean<T> {
 }
 
 
+
 pub struct Gradual<T: PartialOrd + Into<f64>>(T, T);
 
 impl<T> Gradual<T> 
@@ -57,6 +58,7 @@ where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy
         }
     }
 }
+
 
 
 pub struct Triangular<T: PartialOrd + Into<f64>>(T, T, T);
@@ -96,6 +98,7 @@ where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy
 }
 
 
+
 pub struct Trapezoid<T: PartialOrd + Into<f64>>(T, T, T, T);
 
 impl<T> Trapezoid<T>
@@ -130,6 +133,7 @@ where T: PartialOrd + Into<f64> + Div<T, Output = T> + Sub<T, Output = T> + Copy
         }
     }
 }
+
 
 
 #[allow(unused_variables)]
